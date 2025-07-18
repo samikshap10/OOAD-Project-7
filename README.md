@@ -1,5 +1,7 @@
 # SmartHomeSim
 
+**Note**: The demo video could not be uploaded here due to file size limits. You can view it [here on Google Drive](https://drive.google.com/file/d/1RGMu4TbikQrhSctLRyjn1CwyUQJIdqyg/view?usp=sharing).
+
 SmartHomeSim is a C++-based command-line simulator for managing and interacting with smart home devices. It allows users to simulate real-world behaviors of devices like lights, fans, and thermostats, apply behavior strategies, and observe responses to environmental changes through sensors.
 
 ## Project Goals
