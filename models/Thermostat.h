@@ -45,7 +45,7 @@ public:
      * @param value The sensor value (e.g., temperature reading)
      */
     void onSensorTriggered(int value) override {
-        std::cout << "[Thermostat] " << getName() << " responding to sensor change...\n";
+        std::cout << "[Thermostat] " << getName() << " responding to sensor change...";
 
         // Dynamically select strategy based on temperature threshold
         delete strategy; // Prevent memory leak by deleting current strategy

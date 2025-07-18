@@ -90,7 +90,9 @@ int main() {
     // --- Sensor Setup: Subscribes thermostat to temperature changes ---
     Sensor sensor;
     sensor.subscribe(thermostat);
-
+    sensor.subscribe(fan); 
+    sensor.subscribe(light); 
+    
     // --- Command Line Interface Loop ---
     std::string command;
     while (true) {
