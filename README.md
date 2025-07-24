@@ -4,9 +4,9 @@ SmartHomeSim is a C++-based command-line simulator for managing and interacting 
 
 ## Demo Videos
 
-- 🔗 **Demo Video From Project 6** – [View on Google Drive](https://drive.google.com/file/d/1RGMu4TbikQrhSctLRyjn1CwyUQJIdqyg/view?usp=drive_link)
-- 🔗 **CMI (CLI) Walkthrough Covering All Use Cases** – [Watch Full Use Case Demo](https://o365coloradoedu-my.sharepoint.com/:v:/g/personal/sapa6655_colorado_edu/EWKvrvXR1gRFsrf7V1Oj9hkBgEkS0O7JQ-bSmXc5n9I5hw?e=GISOfz)
-- 🔗 **Additional Features added after Project 6 in Project 7** – [Watch Feature Add-ons Video](https://o365coloradoedu-my.sharepoint.com/:v:/g/personal/sapa6655_colorado_edu/EWTFCvS-FdFNrovHbBo4-DIB7s47E8kaQ5vpDTJ546Tm8w?e=0wF6NP)
+- **Demo Video From Project 6** – [View on Google Drive](https://drive.google.com/file/d/1RGMu4TbikQrhSctLRyjn1CwyUQJIdqyg/view?usp=drive_link)
+- **CMI (CLI) Walkthrough Covering All Use Cases** – [Watch Full Use Case Demo](https://o365coloradoedu-my.sharepoint.com/:v:/g/personal/sapa6655_colorado_edu/EWKvrvXR1gRFsrf7V1Oj9hkBgEkS0O7JQ-bSmXc5n9I5hw?e=GISOfz)
+- **Additional Features added after Project 6 in Project 7** – [Watch Feature Add-ons Video](https://o365coloradoedu-my.sharepoint.com/:v:/g/personal/sapa6655_colorado_edu/EWTFCvS-FdFNrovHbBo4-DIB7s47E8kaQ5vpDTJ546Tm8w?e=0wF6NP)
 
 ## Project Goals
 
