@@ -67,6 +67,11 @@ public:
         }
         std::cout << "=================================\n";
     }
+
+    std::vector<SmartDevice*>& getAllDevices() {
+    return devices;
+}
+
 };
 
 #endif // DEVICE_CONTROLLER_H

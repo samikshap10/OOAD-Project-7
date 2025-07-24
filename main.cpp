@@ -2,23 +2,15 @@
  * @file main.cpp
  * @brief Command-line interface for SmartHomeSim: a C++ simulator for smart device control.
  *
- * This file implements the main user interface for interacting with the SmartHomeSim system. It allows
- * users to manage and simulate the behavior of smart home devices such as lights, fans, and thermostats.
- * The CLI supports adding new devices, toggling them on/off, simulating sensor events, and viewing logs.
+ * This file implements the main user interface for interacting with the SmartHomeSim system.
+ * 
+ * Key OO Design Patterns Used:
+ * - Factory Pattern: for dynamic creation of smart devices (DeviceFactory)
+ * - Observer Pattern: for logging device state changes and reacting to sensor input (DeviceLogger, Sensor)
+ * - Strategy Pattern: for both thermostat temperature handling and time-based scheduling (EcoMode, ComfortMode, OneTimeSchedule, etc.)
  *
- * Key Features:
- * - Uses the Factory Pattern to instantiate different types of smart devices
- * - Uses the Observer Pattern for device logging and sensor notifications
- * - Uses the Strategy Pattern to define customizable thermostat behavior (EcoMode/ComfortMode)
- * - Interacts with a centralized DeviceController to manage devices
- * - Provides a user-friendly CLI menu with interactive prompts
- *
- * Classes and Components Involved:
- * - DeviceController: Manages the list of smart devices and toggles their states
- * - DeviceFactory: Creates devices based on type strings (Light, Fan, Thermostat)
- * - DeviceLogger: Observes and logs device events (turn on/off, sensor reactions)
- * - Sensor: Notifies subscribed devices of simulated environmental changes
- * - Thermostat: Supports dynamic strategy assignment for temperature-based logic
+ * Third-Party Elements:
+ * - None. All code is part of the SmartHomeSim simulation.
  *
  * Date: 07/15/2025
  */
@@ -26,133 +18,161 @@
 #include <iostream>
 #include <string>
 
-// Include custom project headers
+// Core project headers
 #include "controllers/DeviceController.h"
+#include "controllers/Scheduler.h"
 #include "utils/DeviceFactory.h"
 #include "observers/DeviceLogger.h"
 #include "models/strategies/EcoMode.h"
 #include "models/strategies/ComfortMode.h"
 #include "models/Thermostat.h"
 #include "models/sensor/Sensor.h"
+#include "strategies/scheduling/OneTimeSchedule.h"
+#include "strategies/scheduling/PeriodicSchedule.h"
+#include "strategies/scheduling/DelayedSchedule.h"
 
 /**
- * @brief Prints the main menu displayed in the SmartHomeSim CLI.
+ * @brief Prints the main CLI menu.
  */
 void printMenu() {
     std::cout << "\n===== SmartHomeSim CLI Menu =====\n";
     std::cout << "Commands:\n";
-    std::cout << "  <name>    - Toggle a device on/off by entering its name directly\n";
-    std::cout << "  add       - Add a new smart device to the system\n";
-    std::cout << "  sensor    - Simulate sensor input (e.g., temperature)\n";
-    std::cout << "  list      - Show all devices currently in the system\n";
-    std::cout << "  logs      - Display log of device actions\n";
-    std::cout << "  exit      - Exit the simulation\n";
+    std::cout << "  <name>      - Toggle a device on/off by name\n";
+    std::cout << "  add         - Add a new smart device\n";
+    std::cout << "  sensor      - Simulate a sensor event\n";
+    std::cout << "  list        - Show all registered devices\n";
+    std::cout << "  tick        - Advance simulated time by 1 second\n";
+    std::cout << "  schedule    - Schedule device action using a timing strategy\n";
+    std::cout << "  logs        - Show logged device activity\n";
+    std::cout << "  reset       - Reset simulation time and tasks\n";
+    std::cout << "  exit        - Quit the simulation\n";
     std::cout << "==================================\n";
 }
 
 /**
- * @brief Entry point for the SmartHomeSim CLI application.
- * 
- * This function:
- * - Initializes default devices (Light, Fan, Thermostat)
- * - Attaches observers (Logger)
- * - Applies strategy pattern for thermostat behavior (EcoMode)
- * - Subscribes devices to sensor for triggering behavior
- * - Runs a loop to handle user commands through a command-line interface
- * 
- * @return int 0 on successful exit
+ * @brief Main entry point for SmartHomeSim.
  */
 int main() {
-    // Controller manages all smart devices
+    int currentTime = 0;
     DeviceController controller;
 
-    // --- Initial Setup: Create and register core smart devices ---
+    // Initial device setup
     SmartDevice* light = DeviceFactory::createDevice("Light", "LivingRoom Light");
     SmartDevice* fan = DeviceFactory::createDevice("Fan", "Bedroom Fan");
     SmartDevice* thermostat = DeviceFactory::createDevice("Thermostat", "Hallway Thermostat");
-
     controller.addDevice(light);
     controller.addDevice(fan);
     controller.addDevice(thermostat);
 
-    // --- Observer Setup: Attach logger to each device ---
+    // Attach logger to all devices
     DeviceLogger* logger = new DeviceLogger();
     light->attach(logger);
     fan->attach(logger);
     thermostat->attach(logger);
 
-    // --- Strategy Pattern: Set thermostat strategy to EcoMode ---
+    // Thermostat uses Strategy Pattern (EcoMode)
     Thermostat* t = dynamic_cast<Thermostat*>(thermostat);
-    if (t) {
-        t->setStrategy(new EcoMode());
-    }
+    if (t) t->setStrategy(new EcoMode());
 
-    // --- Sensor Setup: Subscribes thermostat to temperature changes ---
+    // Sensor setup (Observer Pattern)
     Sensor sensor;
+    sensor.subscribe(light);
+    sensor.subscribe(fan);
     sensor.subscribe(thermostat);
-    sensor.subscribe(fan); 
-    sensor.subscribe(light); 
-    
-    // --- Command Line Interface Loop ---
+
+    // Scheduler setup (Strategy Pattern for time-based behavior)
+    Scheduler scheduler(&controller.getAllDevices());
+
+    // CLI Loop
     std::string command;
     while (true) {
-        printMenu(); // Print menu at the start of each loop
+        printMenu();
         std::cout << "\nEnter command : ";
         std::getline(std::cin, command);
 
-        if (command == "exit") {
-            break; // Exit simulation
-        }
+        if (command == "exit") break;
+
         else if (command == "add") {
-            // Prompt for device type and name
             std::string type, name;
             std::cout << "Enter device type (Light/Fan/Thermostat): ";
             std::getline(std::cin, type);
             std::cout << "Enter device name: ";
             std::getline(std::cin, name);
-
-            // Create and add device
             SmartDevice* newDevice = DeviceFactory::createDevice(type, name);
             if (newDevice) {
                 controller.addDevice(newDevice);
-                newDevice->attach(logger);      // Attach logger
-                sensor.subscribe(newDevice);    // Subscribe to sensor
-                std::cout << "[System] " << type << " \"" << name << "\" added successfully.\n";
-
-                // Default to EcoMode strategy for thermostats
+                newDevice->attach(logger);
+                sensor.subscribe(newDevice);
                 if (type == "Thermostat") {
                     Thermostat* th = dynamic_cast<Thermostat*>(newDevice);
-                    if (th) {
-                        th->setStrategy(new EcoMode());
-                    }
+                    if (th) th->setStrategy(new EcoMode());
                 }
+                std::cout << "[System] " << type << " \"" << name << "\" added successfully.\n";
             } else {
-                std::cout << "[Error] Invalid device type. Valid types: Light, Fan, Thermostat.\n";
+                std::cout << "[Error] Invalid device type.\n";
             }
         }
+
         else if (command == "sensor") {
-            // Trigger a sensor event with user-provided value
             int value;
             std::cout << "Enter sensor value (e.g., temperature): ";
             std::cin >> value;
-            std::cin.ignore(); // Clear newline from input buffer
+            std::cin.ignore();
             sensor.trigger(value);
         }
+
         else if (command == "logs") {
-            // Print all logs captured by the logger
             logger->printLogs();
         }
+
         else if (command == "list") {
-            // Show list of all devices
             controller.listDevices();
         }
+
+        else if (command == "schedule") {
+            std::string deviceName, state, strategyType;
+            int timeValue;
+            std::cout << "Enter device name: ";
+            std::getline(std::cin, deviceName);
+            std::cout << "Enter desired state (on/off): ";
+            std::getline(std::cin, state);
+            std::cout << "Choose strategy (one-time / periodic / delayed): ";
+            std::getline(std::cin, strategyType);
+            std::cout << "Enter time value (in seconds): ";
+            std::cin >> timeValue;
+            std::cin.ignore();
+
+            SchedulingStrategy* strategy = nullptr;
+            if (strategyType == "one-time")
+                strategy = new OneTimeSchedule(timeValue);
+            else if (strategyType == "periodic")
+                strategy = new PeriodicSchedule(timeValue);
+            else if (strategyType == "delayed")
+                strategy = new DelayedSchedule(currentTime + timeValue);
+            else {
+                std::cout << "[Error] Invalid strategy type.\n";
+                continue;
+            }
+            scheduler.addTask(deviceName, state == "on", strategy);
+        }
+
+        else if (command == "tick") {
+            currentTime++;
+            std::cout << "[Tick] Simulated time: " << currentTime << "s\n";
+            scheduler.update(currentTime);
+        }
+
+        else if (command == "reset") {
+            currentTime = 0;
+            scheduler.clearTasks();
+            std::cout << "[System] Simulation reset.\n";
+        }
+
         else {
-            // Attempt to toggle a device by name
             controller.toggleDevice(command);
         }
     }
 
-    // Cleanup resources
-    delete logger;  // Future: implement full cleanup in controller
+    delete logger;
     return 0;
 }
